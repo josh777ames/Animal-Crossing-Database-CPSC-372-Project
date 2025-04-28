@@ -1,0 +1,141 @@
+@startuml
+
+' static tables were added for multiple users accessing items
+entity "ITEM" {
+  * ItemID : string <<PK>>
+  --
+  Name : string
+  Category : enum {CRAFTING, FURNITURE, CLOTHING, OTHER, ARTWORK, FISH, BUG, SEA_CRITTER, FOSSIL}
+}
+
+entity "FISH" {
+  * ItemID : string <<PK, FK>>
+  --
+  Catchable [
+    Month : string
+    TimeOfDay : string
+  ]
+  Location : string
+  ShadowSize : string
+}
+
+entity "BUG" {
+  * ItemID : string <<PK, FK>>
+  --
+  Catchable [
+    Month : string
+    TimeOfDay : string
+  ]
+  Location : string
+}
+
+entity "SEA_CRITTER" {
+  * ItemID : string <<PK, FK>>
+  --
+  Catchable [
+    Month : string
+    TimeOfDay : string
+  ]
+  ShadowSize : string
+  Behavior : string
+}
+
+entity "FLOWER_COLOR" {
+  * ItemID : string <<PK, FK>>
+  * Color : string <<PK>>
+  --
+}
+
+entity "VILLAGER" {
+  * VillagerID : string <<PK>>
+  --
+  Name : string
+  Personality : string
+  Species : string
+}
+
+' user side tables
+entity "USER" {
+  * UserID : string <<PK>>
+  --
+  Username : string
+  Password : string
+}
+
+' table created to differentiate items user does not have and
+' possible items to get this also allows for better bcnf
+' as every user has their own user_item table rather than users sharing
+' the items table
+entity "USER_ITEM" {
+  * UserID : string <<PK, FK>>
+  * ItemID : string <<PK, FK>>
+  --
+  QuantityOwned : int
+}
+
+' table to mark donated items rather than just a boolean in
+' user_items this helps with donation of items that may not be in user_items
+' also helps achieve bcnf with no redundant booleans in user_item
+entity "MUSEUM" {
+  * UserID : string <<PK, FK>>
+  * ItemID : string <<PK, FK>>
+}
+
+' table to mark wishlist items and is similar to user_items in
+' its purpose and push for bcnf
+entity "WISHLIST" {
+  * UserID : string <<PK, FK>>
+  * ItemID : string <<PK, FK>>
+  --
+  WishlistQuantity : int
+}
+
+' table to mark user's villagers, similar to user_items and wishlist
+entity "ISLAND_VILLAGER" {
+  * UserID : string <<PK, FK>>
+  * VillagerID : string <<PK, FK>>
+  --
+  TalkedToday : boolean
+}
+
+entity "DAILY_FOSSIL" {
+  * UserID : string <<PK, FK>>
+  * FossilNumber : int <<PK>>
+  --
+  DugToday : boolean
+}
+
+entity "DAILY_STONE" {
+  * UserID : string <<PK, FK>>
+  * StoneNumber : int <<PK>>
+  --
+  HitToday : boolean
+}
+
+' relationships
+ITEM <|-- FISH : Is
+ITEM <|-- BUG : Is
+ITEM <|-- SEA_CRITTER : Is
+ITEM ||--o{ FLOWER_COLOR : "Has Color Variants"
+
+USER ||--o{ USER_ITEM : "Owns"
+USER ||--o{ WISHLIST : "Plans For"
+USER ||--o{ ISLAND_VILLAGER : "Has"
+USER ||--o{ ISLAND_VILLAGER : "Talked With"
+USER ||--o{ DAILY_FOSSIL : "Dug Fossils"
+USER ||--o{ DAILY_STONE : "Hit Stones"
+USER ||--o{ MUSEUM : "Donates"
+
+ITEM ||--o{ MUSEUM : "Donated To"
+ITEM ||--o{ USER_ITEM : "Is Tracked"
+ITEM ||--o{ WISHLIST : "Is Wanted"
+
+VILLAGER ||--o{ ISLAND_VILLAGER : "Is Added"
+
+note "static tables contain all the possible items or villagers a player can get" as N0
+note "USER_ITEM tracks user progress towards obtaining items" as N1
+note "MUSEUM tracks user progress towards donating items" as N2
+note "WISHLIST allows users to track quantities of items that they want" as N3
+note "DAILY_FOSSIL, and DAILY_STONE are takes the user will do every day" as N4
+
+@enduml

@@ -1,0 +1,119 @@
+@startchen
+
+' entities
+entity USER {
+  UserID <<key>>
+  Username
+  Password
+}
+
+entity ITEM {
+  ItemID <<key>>
+  Name
+  Category
+}
+
+entity MUSEUM {
+  ItemID <<key>>
+  UserID <<key>>
+}
+
+entity FLOWER_COLOR {
+  ItemID <<key>>
+  Color
+}
+
+entity FISH {
+  ItemID <<key>>
+  Catchable {
+    Month
+    TimeOfDay
+  }
+  Location
+  ShadowSize
+}
+
+entity BUG {
+  ItemID <<key>>
+  Catchable {
+    Month
+    TimeOfDay
+  }
+  Location
+}
+
+entity SEA_CRITTER {
+  ItemID <<key>>
+  Catchable {
+    Month
+    TimeOfDay
+  }
+  ShadowSize
+  Behavior
+}
+
+entity VILLAGER {
+  VillagerID <<key>>
+  Name {
+    First
+    Species
+  }
+  Personality
+  TalkedToday
+}
+
+entity DAILY_STONE <<weak>> {
+  StoneNumber <<key>>
+  HitToday
+}
+
+entity DAILY_FOSSIL <<weak>> {
+  FossilName <<key>>
+  DugToday
+}
+
+
+' relationships
+relationship OWNS {
+  Quantity
+}
+relationship PLANS {
+  Quantity
+}
+relationship HAS_VARIANT <<identifying>> {
+}
+relationship IS <<identifying>> {
+}
+relationship HAS {
+  OnIsland
+}
+relationship DONATES {
+}
+relationship TALKS_TO <<identifying>> {
+}
+relationship HITS <<identifying>> {
+}
+relationship DIGS <<identifying>> {
+}
+USER -N- OWNS
+USER -N- PLANS
+USER -1- HAS
+USER -1- DONATES
+USER -1- TALKS_TO
+USER -1- DIGS
+USER -1- HITS
+OWNS -1- ITEM
+PLANS -1- ITEM
+HAS -N- VILLAGER
+DONATES -N- MUSEUM
+TALKS_TO -N- VILLAGER
+DIGS =N= DAILY_FOSSIL
+HITS =N= DAILY_STONE
+ITEM -1- IS
+ITEM -1- HAS_VARIANT
+IS =N= FISH
+IS =N= BUG
+IS =N= SEA_CRITTER
+HAS_VARIANT =N= FLOWER_COLOR
+
+@endchen
