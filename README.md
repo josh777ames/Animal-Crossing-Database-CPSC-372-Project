@@ -32,6 +32,7 @@ Try donating items to the museum and view museum progress and item progress at t
 You may also remove things like villagers or items in the wishlist by pressing buttons with a ❌.
 Try tracking the number of stones and fossils you hit/dug.
 
+## Database Overview
 This database has 13 different tables that all interact with each other:
 - Items: Differentiated between crafting materials, furniture, clothing, etc.
 - Fish: Trackable by season, time of day, and location.
