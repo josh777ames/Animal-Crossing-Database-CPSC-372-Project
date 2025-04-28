@@ -1,0 +1,394 @@
+<!-- The home page like stated in app.py this is way too long and probably should have been
+separated pages
+ -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome, {{ username }}!</h1>
+
+    <!-- logout button -->
+    <form method="GET" action="{{ url_for('logout') }}" style="display:inline;">
+        <button type="submit">Logout</button>
+    </form>
+
+    <!-- anchor for daily tasks -->
+    <h2 id="tasks">Daily Tasks</h2>
+
+    <!-- stones hit displayed out of 6 -->
+    <h3>Stones</h3>
+    <p>{{ stones_hit }} / 6 stones hit</p>
+    {% if stones_hit < 6 %}
+    <form method="POST" action="{{ url_for('hit_stone') }}">
+        <button type="submit">+ Hit Stone</button>
+    </form>
+    {% endif %}
+
+    <!-- fossils dug displayed out of 4 -->
+    <h3>Fossils</h3>
+    <p>{{ fossils_dug }} / 4 fossils dug</p>
+    {% if fossils_dug < 4 %}
+    <form method="POST" action="{{ url_for('dug_fossil') }}">
+        <button type="submit">+ Dug Fossil</button>
+    </form>
+    {% endif %}
+
+    <!-- anchor for villagers -->
+    <h3 id="villagers">Villager Interactions</h3>
+
+    <!-- we combine check boxes for tracking daily interactions and the ability
+     to remove villagers from island in on area
+     -->
+    <ul>
+        {% for villager in villagers %}
+        <li style="list-style: none;">
+            <form method="POST" action="{{ url_for('toggle_talked', villager_id=villager[2]) }}" style="display:inline-block;">
+                <input type="checkbox" name="talked_today" onchange="this.form.submit()" {% if villager[1] == 1 %}checked{% endif %}>
+            </form>
+            {{ villager[0] }}
+            <form method="POST" action="{{ url_for('remove_villager', villager_id=villager[2]) }}" style="display:inline-block;">
+                <button type="submit">❌</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- button to reset tasks -->
+    <h2>Reset Daily Tasks</h2>
+    <form method="POST" action="{{ url_for('reset_daily_tasks') }}">
+        <button type="submit">Reset</button>
+    </form>
+
+    <!-- search area to find and add villagers to island -->
+    <h2>Add New Villager</h2>
+    <form method="GET" action="{{ url_for('home') }}">
+        <input type="text" name="search" placeholder="Search for a villager...">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- display search results for searched villager name -->
+    {% if villager_search_results %}
+    <ul>
+        {% for result in villager_search_results %}
+        <li>
+            {{ result[0] }} ({{ result[1] }})
+            <form method="POST" action="{{ url_for('add_villager', villager_id=result[2]) }}" style="display:inline;">
+                <button type="submit">✅</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- anchor for user items -->
+    <h2 id="myitems">My Items</h2>
+
+    <!-- displaying user items -->
+    <table border="1">
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Category</th>
+        </tr>
+        {% for item in user_items %}
+        <tr>
+            <td>{{ item[0] }}</td>
+            <td>
+                <!-- buttons to increase or decrease quantity -->
+                {{ item[1] }}
+                <form method="POST" action="{{ url_for('update_item_quantity', item_name=item[0], action='increase') }}" style="display:inline;">
+                    <button type="submit">➕</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_item_quantity', item_name=item[0], action='decrease') }}" style="display:inline;">
+                    <button type="submit">➖</button>
+                </form>
+            </td>
+            <td>{{ item[2] }}</td>
+        </tr>
+
+        {% endfor %}
+    </table>
+
+    <!-- ChatGPT 4o assisted in this styling, connected to the page offset in app.py-->
+    <div style="margin-top: 10px;">
+        {% if items_current_page > 0 %}
+        <a href="{{ url_for('home', page=items_current_page-1) }}">⬅️ Previous</a>
+        {% endif %}
+        <a href="{{ url_for('home', page=items_current_page+1) }}" style="margin-left:20px;">Next ➡️</a>
+    </div>
+
+    <!-- anchor for items -->
+    <h3 id="items">Items</h3>
+
+    <!-- search for items -->
+    <form method="GET" action="{{ url_for('home') }}">
+        <input type="text" name="item_search" placeholder="Search for an item...">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- display searched items -->
+    <h2>Search Items (Add to Owned or Wishlist)</h2>
+    <ul>
+        {% if item_search_results %}
+            {% for item in item_search_results %}
+            <li>
+                {{ item[0] }} ({{ item[1] }})
+                <!-- button to add to user items -->
+                <form method="POST" action="{{ url_for('add_item', item_id=item[2]) }}" style="display:inline;">
+                    <input type="number" name="quantity" min="1" value="1" style="width: 50px;">
+                    <button type="submit">✅ Add Owned</button>
+                </form>
+                <!-- button to add to wishlist -->
+                <form method="POST" action="{{ url_for('add_to_wishlist', item_id=item[2]) }}" style="display:inline;">
+                    <input type="number" name="quantity" min="1" value="1" style="width: 50px;">
+                    <button type="submit">⭐ Add Wishlist</button>
+                </form>
+            </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+
+
+    <!-- anchor for wishlist -->
+    <h2 id="wishlist">Wishlist</h2>
+
+    <!-- display wishlist items -->
+    {% if wishlist_items %}
+    <table>
+        <tr>
+            <th>Item Name</th>
+            <th>Quantity Wanted</th>
+            <th>Actions</th>
+        </tr>
+        {% for item in wishlist_items %}
+        <tr>
+            <td>{{ item[0] }}</td>
+            <td>{{ item[1] }}</td>
+            <td>
+                <!-- buttons to increase quantity, decrease quantity, or remove items from wishlist -->
+                <form method="POST" action="{{ url_for('update_wishlist_quantity', item_id=item[2], action='increase') }}" style="display:inline;">
+                    <button type="submit">➕</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_wishlist_quantity', item_id=item[2], action='decrease') }}" style="display:inline;">
+                    <button type="submit">➖</button>
+                </form>
+                <form method="POST" action="{{ url_for('remove_wishlist_item', item_id=item[2]) }}" style="display:inline;">
+                    <button type="submit">❌</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Nothing in wishlist. </p>
+    {% endif %}
+
+    <!-- anchor for fish -->
+    <h2 id="fish">Undonated Fish</h2>
+
+    <!-- display undonated fish -->
+    {% if undonated_fish %}
+    <table border="1">
+        <tr>
+            <th>Fish Name</th>
+            <th>Catchable Month</th>
+            <th>Time of Day</th>
+            <th>Location</th>
+            <th>Shadow Size</th>
+            <th>Museum</th>
+        </tr>
+        {% for fish in undonated_fish %}
+        <tr>
+            <td>{{ fish[0] }}</td>
+            <td>{{ fish[1] }}</td>
+            <td>{{ fish[2] }}</td>
+            <td>{{ fish[3] }}</td>
+            <td>{{ fish[4] }}</td>
+            <td>
+                <!-- button to mark donated fish -->
+                <form method="POST" action="{{ url_for('mark_donated', item_id=fish[5]) }}">
+                    <input type="hidden" name="source" value="fish">
+                    <button type="submit">✅ Donate</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No undonated fish found. </p>
+    {% endif %}
+
+    <!-- anchor for bugss -->
+    <h2 id="bug">Undonated Bugs</h2>
+
+    <!-- display for undonated bugs -->
+    {% if undonated_bug %}
+    <table border="1">
+        <tr>
+            <th>Bug Name</th>
+            <th>Catchable Month</th>
+            <th>Time of Day</th>
+            <th>Location</th>
+            <th>Museum</th>
+        </tr>
+        {% for bug in undonated_bug %}
+        <tr>
+            <td>{{ bug[0] }}</td>
+            <td>{{ bug[1] }}</td>
+            <td>{{ bug[2] }}</td>
+            <td>{{ bug[3] }}</td>
+            <td>
+                <!-- button to mark donated bugs -->
+                <form method="POST" action="{{ url_for('mark_donated', item_id=bug[4]) }}">
+                    <input type="hidden" name="source" value="bug">
+                    <button type="submit">✅ Donate</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No undonated bugs found. </p>
+    {% endif %}
+
+    <!-- anchor for critters -->
+    <h2 id="critter">Undonated Sea Critters</h2>
+
+    <!-- display undonated critters -->
+    {% if undonated_sea_critter %}
+    <table border="1">
+        <tr>
+            <th>Sea Critter Name</th>
+            <th>Catchable Month</th>
+            <th>Time of Day</th>
+            <th>Shadow Size</th>
+            <th>Behavior</th>
+            <th>Museum</th>
+        </tr>
+        {% for critter in undonated_sea_critter %}
+        <tr>
+            <td>{{ critter[0] }}</td>
+            <td>{{ critter[1] }}</td>
+            <td>{{ critter[2] }}</td>
+            <td>{{ critter[3] }}</td>
+            <td>{{ critter[4] }}</td>
+            <td>
+                <!-- button to mark donated critters -->
+                <form method="POST" action="{{ url_for('mark_donated', item_id=critter[5]) }}">
+                    <input type="hidden" name="source" value="critter">
+                    <button type="submit">✅ Donate</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No undonated sea critters found. </p>
+    {% endif %}
+
+    <!-- anchor for fossils -->
+    <h2 id="fossil">Undonated Fossils</h2>
+
+    <!-- display undonated fossils -->
+    {% if undonated_fossil %}
+    <table border="1">
+        <tr>
+            <th>Fossil Name</th>
+            <th>Museum</th>
+        </tr>
+        {% for fossil in undonated_fossil %}
+        <tr>
+            <td>{{ fossil[0] }}</td>
+            <td>
+                <!-- button to mark donated fossils -->
+                <form method="POST" action="{{ url_for('mark_donated', item_id=fossil[1]) }}">
+                    <input type="hidden" name="source" value="fossil">
+                    <button type="submit">✅ Donate</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No undonated fossils found. </p>
+    {% endif %}
+
+
+    <!-- anchor for artwork -->
+    <h2 id="artwork">Undonated Artwork</h2>
+
+    <!-- display undonated artwork -->
+    {% if undonated_artwork %}
+    <table border="1">
+        <tr>
+            <th>Artwork Name</th>
+            <th>Museum</th>
+        </tr>
+        {% for artwork in undonated_artwork %}
+        <tr>
+            <td>{{ artwork[0] }}</td>
+            <td>
+                <!-- button to mark donated artwork -->
+                <form method="POST" action="{{ url_for('mark_donated', item_id=artwork[1]) }}">
+                    <input type="hidden" name="source" value="artwork">
+                    <button type="submit">✅ Donate</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No undonated artwork found.</p>
+    {% endif %}
+
+
+    <!-- displaying museum progress -->
+    <h2>Museum Progress</h2>
+
+    <table border="1">
+        <tr>
+            <th>Category</th>
+            <th>Donated</th>
+            <th>Total</th>
+            <th>Progress</th>
+        </tr>
+        {% for category, stats in museum_progress.items() %}
+        <tr>
+            <td>{{ category.replace('_', ' ').title() }}</td>
+            <td>{{ stats.donated }}</td>
+            <td>{{ stats.total }}</td>
+            <td>
+                <!-- calculating percents -->
+                {% set percent = (stats.donated / stats.total) * 100 if stats.total > 0 else 0 %}
+                {{ percent|round(1) }}%
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- displaying overall item progress-->
+    <h2>Overall Collection Progress</h2>
+
+    <table border="1">
+        <tr>
+            <th>Owned</th>
+            <th>Total</th>
+            <th>Progress</th>
+        </tr>
+        <tr>
+            <td>{{ overall_progress.owned }}</td>
+            <td>{{ overall_progress.total }}</td>
+            <td>
+                <!-- calculating percents -->
+                {% set overall_percent = (overall_progress.owned / overall_progress.total) * 100 if overall_progress.total > 0 else 0 %}
+                {{ overall_percent|round(1) }}%
+            </td>
+        </tr>
+    </table>
+
+
+</body>
+</html>
