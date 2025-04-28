@@ -18,6 +18,7 @@ This notebook will create the database and seed it with data. It also demonstrat
 After doing this you may run the app.py file.
 The server will start at http://127.0.0.1:8080
 
+## Use
 From here you will be met with the log in screen.
 Either use the already seeded user:
 Username: ExampleUser
