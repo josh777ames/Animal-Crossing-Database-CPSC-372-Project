@@ -8,7 +8,7 @@ app.secret_key = 'your_secret_key'
 
 # connect to database
 def get_db_connection():
-    return sqlite3.connect('./.venv/acnh.db')
+    return sqlite3.connect('./acnh.db')
 
 # login
 @app.route("/", methods=['GET', 'POST'])
